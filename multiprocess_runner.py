@@ -19,15 +19,14 @@ def experiment_setup(pm, path, seed):
     K_vec = pm['K_vec']     # list of numbers of users per subspace
     m_vec = pm['m_vec']     # list of numbers of comparisons per user
     y_noise = pm['y_noise']
-    loss_fun = pm['loss_fun']
-    loss_param = pm['loss_param']
     approx_subspace_noise = pm['approx_subspace_noise']
     reconst_method = pm['reconst_method']
 
     logging.basicConfig(filename=log_path, level=logging.INFO,
             format='%(process)d - %(asctime)s - %(message)s')
 
-    results = {'error': np.zeros((len(K_vec), len(m_vec)))}
+    results = {'logistic': np.zeros((len(K_vec), len(m_vec))),
+               'hinge': np.zeros((len(K_vec), len(m_vec)))}
 
     for i in range(len(K_vec)):
 
@@ -41,8 +40,9 @@ def experiment_setup(pm, path, seed):
             logging.info('  Number of queries per user {} / {}'.format(m, m_vec[-1]))
 
             error = basic_simulation.run_experiment(d, n, r, K, m, approx_subspace_noise, 
-                                        y_noise, loss_fun, loss_param, reconst_method, seed)
-            results['error'][i, j] = error
+                                                    y_noise, reconst_method, seed)
+            results['logistic'][i, j] = error['logistic']
+            results['hinge'][i, j] = error['hinge']
     
         sio.savemat(save_file, results)
         logging.info('Saved to {}'.format(save_file))
@@ -58,15 +58,14 @@ def incremental_setup(pm, path, seed):
     K = pm['K_vec'][0]
     m = pm['m_vec'][0]
     y_noise = pm['y_noise']
-    loss_fun = pm['loss_fun']
-    loss_param = pm['loss_param']
     approx_subspace_noise = pm['approx_subspace_noise']
     reconst_method = pm['reconst_method']
 
     logging.basicConfig(filename=log_path, level=logging.INFO,
             format='%(process)d - %(asctime)s - %(message)s')
 
-    results = {'error': np.zeros((d-1, n-4))}
+    results = {'logistic': np.zeros((d-1, n-4)),
+               'hinge': np.zeros((d-1, n-4))}
 
     for d_i in range(2,d+1):
 
@@ -74,8 +73,9 @@ def incremental_setup(pm, path, seed):
             'Ambient dimension {} / {}'.format(d_i, d))
 
         errors = basic_simulation.run_experiment(d_i, n, r, K, m, approx_subspace_noise, 
-                                    y_noise, loss_fun, loss_param, reconst_method, seed, True)
-        results['error'][d_i-2] = errors
+                                    y_noise, reconst_method, seed, True)
+        results['logistic'][d_i-2] = errors['logistic']
+        results['hinge'][d_i-2] = errors['hinge']
     
         sio.savemat(save_file, results)
         logging.info('Saved to {}'.format(save_file))

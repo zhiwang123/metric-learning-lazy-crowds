@@ -6,11 +6,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot(root, K_vec, m_vec):
+def plot(root, K_vec, m_vec, loss_fun):
 
     load_path = root + "aggregate.mat"
 
-    results = sio.loadmat(load_path)['error']
+    results = sio.loadmat(load_path)[loss_fun]
     mean = np.mean(results, axis = 0)
     std = np.std(results, axis = 0)
 
@@ -44,7 +44,7 @@ def plot(root, K_vec, m_vec):
         spine.set_color('black')
         spine.set_linewidth(2)
     
-    save_path = root + "plot.png"
+    save_path = root + "plot-{}.png".format(loss_fun)
     plt.savefig(save_path)
 
 def aggregate_results(root, index_list, len_K_vec, len_m_vec):
@@ -52,7 +52,8 @@ def aggregate_results(root, index_list, len_K_vec, len_m_vec):
     Aggregate results from runs
     """
     results = {
-        'error': np.zeros((len(index_list), len_K_vec, len_m_vec))
+        'logistic': np.zeros((len(index_list), len_K_vec, len_m_vec)),
+        'hinge': np.zeros((len(index_list), len_K_vec, len_m_vec))
     }
 
     load_path = root + "data/exp1"
@@ -60,7 +61,8 @@ def aggregate_results(root, index_list, len_K_vec, len_m_vec):
 
     for index in runs:
         results_index = sio.loadmat(load_path + "_{}.mat".format(index), squeeze_me=False)
-        results['error'][index] = results_index['error']
+        results['logistic'][index] = results_index['logistic']
+        results['hinge'][index] = results_index['hinge']
 
     sio.savemat(save_path, results)
 
@@ -73,4 +75,5 @@ if __name__ == '__main__':
     runs = list(range(30))
 
     aggregate_results(root, runs, len(K_vec), len(m_vec))
-    plot(root, K_vec, m_vec)
+    plot(root, K_vec, m_vec, 'logistic')
+    plot(root, K_vec, m_vec, 'hinge')

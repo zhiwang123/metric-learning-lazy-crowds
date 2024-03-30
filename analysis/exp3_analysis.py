@@ -4,7 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot_error(root, K_vec, noise_levels):
+def plot_error(root, K_vec, noise_levels, loss_fun):
 
     matplotlib.style.use('seaborn')
     sns.set_style("whitegrid")
@@ -13,7 +13,7 @@ def plot_error(root, K_vec, noise_levels):
 
     for i in range(0,4):
         load_path = root + "noise_{}/aggregate.mat".format(i)
-        errors = sio.loadmat(load_path)['error']
+        errors = sio.loadmat(load_path)[loss_fun]
         errors = errors.squeeze()
 
         mean = np.mean(errors, axis=0).squeeze()
@@ -38,7 +38,7 @@ def plot_error(root, K_vec, noise_levels):
         spine.set_color('black')
         spine.set_linewidth(2)
 
-    save_path = root + "plot.png"
+    save_path = root + "plot-{}.png".format(loss_fun)
     plt.savefig(save_path)
 
 def aggregate_results(root, noise_index, index_list, len_K_vec):
@@ -46,7 +46,8 @@ def aggregate_results(root, noise_index, index_list, len_K_vec):
     Aggregate results from runs
     """
     results = {
-        'error': np.zeros((len(index_list), len_K_vec, 1))
+        'logistic': np.zeros((len(index_list), len_K_vec, 1)),
+        'hinge': np.zeros((len(index_list), len_K_vec, 1))
     }
 
     load_path = root + "noise_{}/data/noise_{}".format(noise_index, noise_index)
@@ -54,14 +55,15 @@ def aggregate_results(root, noise_index, index_list, len_K_vec):
 
     for index in runs:
         results_index = sio.loadmat(load_path + "_{}.mat".format(index), squeeze_me=False)
-        results['error'][index] = results_index['error']
+        results['logistic'][index] = results_index['logistic']
+        results['hinge'][index] = results_index['hinge']
 
     sio.savemat(save_path, results)
 
 if __name__ == '__main__':
 
     runs = list(range(30))
-    K_vec = [1, 10, 20, 40, 60, 80]
+    K_vec = [1, 10, 20, 40, 60, 80, 100]
     noise_levels = [0, 0.1, 0.2, 0.3]
     root = "examples/exp_results/exp3/"
 
@@ -69,4 +71,5 @@ if __name__ == '__main__':
     for noise_index in range(4):              
         aggregate_results(root, noise_index, runs, len(K_vec))
 
-    plot_error(root, K_vec, noise_levels)
+    plot_error(root, K_vec, noise_levels, 'logistic')
+    plot_error(root, K_vec, noise_levels, 'hinge')

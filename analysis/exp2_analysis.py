@@ -6,10 +6,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot(root, d, n, r, d_start):
+def plot(root, d, n, r, d_start, loss_fun):
 
     load_path = root + "aggregate.mat"
-    results = sio.loadmat(load_path)['error'][:,d_start-2:,:]
+    results = sio.loadmat(load_path)[loss_fun][:,d_start-2:,:]
 
     matplotlib.style.use('seaborn')
     plt.figure(figsize=(9, 8))
@@ -36,15 +36,17 @@ def plot(root, d, n, r, d_start):
     plt.plot(x, y, color='red', linestyle='--', label='d(d+1)/{}'.format(r*(r+1)))
     plt.legend(fontsize=17)
 
-    save_path = root + "plot.png"
+    save_path = root + "plot-{}.png".format(loss_fun)
     plt.savefig(save_path)
+
 
 def aggregate_results(root, index_list, d, n):
     """
     Aggregate results from runs
     """
     results = {
-        'error': np.zeros((len(index_list), d-1, n-4))
+        'logistic': np.zeros((len(index_list), d-1, n-4)),
+        'hinge': np.zeros((len(index_list), d-1, n-4))
     }
 
     load_path = root + "data/exp2"
@@ -52,7 +54,8 @@ def aggregate_results(root, index_list, d, n):
 
     for index in runs:
         results_index = sio.loadmat(load_path + "_{}.mat".format(index), squeeze_me=False)
-        results['error'][index] = results_index['error']
+        results['logistic'][index] = results_index['logistic']
+        results['hinge'][index] = results_index['hinge']
 
     sio.savemat(save_path, results)
 
@@ -67,5 +70,6 @@ if __name__ == '__main__':
     runs = list(range(30))
 
     aggregate_results(root, runs, d, n)
-    plot(root, d, n, r, d_start)
+    plot(root, d, n, r, d_start, 'logistic')
+    plot(root, d, n, r, d_start, 'hinge')
 
