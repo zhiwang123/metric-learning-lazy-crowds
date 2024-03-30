@@ -1,0 +1,14 @@
+root: 'examples/exp_results/exp3/noise_2/data/noise_2'
+n_cores: 30
+type: 'normal'
+params:
+  d: 10                                         # ambient dimension
+  n: 80                                         # number of subspaces
+  r: 1                                          # subspace dimension
+  K_vec: [1, 10, 20, 40, 60, 80]                # list of numbers of users per subspace
+  m_vec: [6]                                    # list of numbers of comparisons per user
+  y_noise: 1                                    # noise level for generating labels, use ~ if None
+  loss_fun: 'logistic'                          # loss function for learning subspace metric, logistic or hinge
+  loss_param: 1                                 # param if loss_function is logistic
+  approx_subspace_noise: 0.2                    # items do not lie exactly in subspace
+  reconst_method: 'huber'                       # {ols, huber}
